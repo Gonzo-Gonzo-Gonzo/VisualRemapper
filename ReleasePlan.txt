@@ -1,0 +1,40 @@
+                RELEASE PLAN
+    11 weeks total.
+Week 1:sep 27th
+    •	Create the design specs
+        o	Experiment with different python image editing modules. Specify which ones I’ll be using.  
+        o	Produce a finer outline of the program structure. 
+    •	Produce a testing timeline and an experiment specification.
+        o	Take week 4 from this release plan, refine it and expand on it. 
+        o	A document with a specific description of the experiment that will be taking place.  What we want to test? how we will test it? how will we interpret the results?
+    •	Create the beginning of the program:
+        o	Create a folder with a python file, a requirements file and a ReadMe file. 
+        o	Set up a virtual environment locally.
+        o	Using the modules I’ve experimented with, make a program that can take a 360 video and show it to the viewer.
+    •	Create a github repository for it all.
+    •	Determine the VR headset(s) that the program will be used with.  
+Week 2: October 4th
+    •	Make the container for data about the users usable field of view(CONTAINER).
+        o	From a naïve perspective it could be as simple as having a dictionary containing the coordinates of the sections of the visual field that the person cannot see in.
+        o	Fill the container with dummy data.
+    •	Make the program warp the 360 video using the information in the container.
+Week 3: October 11th 
+    •	Create a GUI that detects the blind spots of the user and outputs a CONTAINER.
+    •	Test it.
+Week 4: October 18thFULL TESTING
+    •	Test the program on people with Hemianopsia (or any condition that is relevant). Collect qualitative data.
+    •	Analyse the data to answer the questions:
+        o	“Does the user have a visual experience when using the headset as if he or she did not have any blind spots?”
+        o	 “Does the user experience a “full visual field” when using the headset?”
+        o	“If the user usually has impaired depth perception, does his or her depth perception improve when using the headset?”
+        o	“if the program does not work, could it be because instead of squishing there should be “squishing and cutting”.
+
+Weeks 5-11 (unknown):
+    •	If the Test shows the program does not work, try to fix it. 
+        o	Try cutting if the data shows that could work. 
+    •	If the test shows the program is successful, choose:
+        a.	Make the program compatible with more headsets. 
+        b.	Make the program able to remap more stuff
+    •	VR 3d environment footage (games)
+    •	Real life external footage. 
+
