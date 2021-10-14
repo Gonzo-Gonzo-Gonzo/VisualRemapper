@@ -79,26 +79,42 @@ print (type (Video_file[0][0][0][0][0]))
 def main():
 
     Info = GUI0()
-    Left_window=makeWindow('left',Info['leftLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
-    Right_window=makeWindow('left',Info['rightLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
+    #Left_window=makeWindow('left',Info['leftLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
+    #Right_window=makeWindow('left',Info['rightLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
     counter=0
     
     RasPiLe=paramiko.SSHClient()        
     RasPiLe.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    RasPiLe.connect('192.168.1.78',port=22,username='pi',password='superpi')
+    #RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi',key_filename='C:\\Users\\lorca\\Desktop\\private key 113')
+    RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi')
     
     #RasPiRi=paramiko.SSHClient()
-    #RasPiRi.set_missint_host_key_policy(paramiko.AutoAddPolicy())
-    #RasPiRi.connect(#######,#####,####,####,####)
-         
+    #RasPiRi.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    #RasPiRi.connect('192.168.1.113',port=22,username='pi',password='superpi')
+    
+    stdin,stdout,stderr=RasPiLe.exec_command('python /home/pi/Desktop/camCap/getFile.py')
+    print (type(stdout))
+    output_Le=[]
+    for line in stdout:
+        output_Le.append(line)
+    print(output_Le)
+    output_Le__=stdout.readline()
+    print (type(output_Le__))
+    error_Le=stderr.readline()
+    print(output_Le__)
+    print(error_Le)
+    
     #loop through this to create the stream 
-    while(True):
+    #while(True):
+    for i in range(1,3):
         ##get frame from left side pi
         stdin,stdout,stderr=RasPiLe.exec_command('Desktop/getFile.py')
         output_Le=stdout.readline()
+        print(output_Le)
         ##get frame from right side pi
         #stdin,stdout,stderr=RasPiRi.exec_command('Desktop/getFile.py')
         #output_Ri=stdout.readline()
+        #print(output_Ri)
         ##send opnCV tensor (as  a string) to be tranformed into a pytorch tensor and displayed.
         #Transform_and_render(left=output_le,right=output_ri)
 
@@ -107,9 +123,10 @@ def main():
     #    Left_window['Frame'].update()
     #    Right_window['Frame'].update()
 
-    Right_window.close()
-    Left_window.close()
+    #Right_window.close()
+    #Left_window.close()
     
+    '''
     PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
     
 
@@ -120,7 +137,7 @@ def main():
    
 
     PIL_image=TF.resize(PIL_image,(400,400))
-   
+   '''
 
 #set up pathway from the raspberry pie
             
