@@ -1,0 +1,163 @@
+Learn what a tensor is
+Figure out how to extract a single frame. 
+Make pytorch show the fram as an image. 
+Use a pytorch transform to warp an image. It must be a functional transform, becuase it needs to 
+
+
+
+Load the MP4 file to the program, display the different frames. 
+Split the frames into two separate frames, one ofr each eye, and change their size. 
+
+
+
+Useful tranforms: 
+    The resize transform 
+    The Gaugasian blurring transofmation.
+
+
+Modules
+    OpenGL for Graphics rendering 2D and 3D vector Graphics
+    The blender API 
+
+Outline the structure of the whole program
+
+
+
+
+
+
+
+
+BIN
+
+ print (type(stdout))
+    output_Le=[]
+    for line in stdout:
+        output_Le.append(line)
+    print(output_Le)
+    output_Le__=stdout.readline()
+    error_Le=stderr.readline()
+
+    print(error_Le)
+
+
+    INITIAL PRACTICE CODE FOR TRANSFORMS 
+'
+Resources= sdl2.ext.Resources(__file__,"Dead aphid.jpg")
+
+sdl2.ext.init() 
+
+window = sdl2.ext.Window('Hellow World!',size=(640,480))
+window.show()
+
+factory = sdl2.ext.SpriteFactory(sdl2.ext.SOFTWARE)
+sprite= factory. from_image(Resources.get_path("Dead aphid.jpg"))
+
+spriterenderer= factory. create_sprite_render_system(window)
+spriterenderer.render(sprite) 
+
+processor = sdl2.ext.TestEventProcessor()
+processor.run(window)
+
+'''
+
+
+'''
+##this is practice code for getting familiar with tensors and other pytorch concepts. 
+Test_tensor=torch.rand(3,4)
+print(Test_tensor)
+Test_tensor_Elements_Selection=(Test_tensor[:,-1])
+print(Test_tensor_Elements_Selection)
+
+
+
+#practice code ends here. Should delete once fully familiar. 
+'''
+
+
+#Video_file_timestamps= torchvision.io.read_video_timestamps("C:\\Users\\lorca\\IT masters\\Dissertation\\360_video test.mp4",'sec')
+
+#print(Video_file_timestamps)
+'''
+Video_file =torchvision.io.read_video("C:\\Users\\lorca\\IT masters\\Dissertation\\TestVideo.mp4",0,1,'sec')
+print(Video_file[0][0][0][0][0])
+tensor_image =Video_file[0][0][0][0]
+
+print (type (Video_file[0][0][0][0][0]))
+
+'''
+
+
+
+
+
+
+sample_border=500 
+def RasPi_Frame_Transform(image1,image2):
+
+    image1_central=TF.crop
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+OLD WINDOW MAKER
+
+def makeWindow(lense,border,headset_type,Hemianopsia_type):
+    PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
+    layout= [[sg.InputText(key='Tests')]]
+    #layout= [[sg.Image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",key='Frame')]]
+    height=getHeight(headset_type)
+    width=''
+    location=''
+    if Hemianopsia_type=='homonymous_right':
+        if  lense=='left':
+            location=(0,0)
+            width=border
+        elif lense=='right':
+            location=(0,0)
+            width=border
+    elif Hemianopsia_type== 'homonymous_left':
+        if  lense=='left':
+            location=(0,border)
+            width=getWidth(headset_type)-border
+        elif lense=='right':
+            location=(0,border)
+    Window_identifier= lense+' lense window'
+    return sg.Window(Window_identifier,no_titlebar=True,layout=layout,location=location,size=(height,width))    
+
+
+
+##starting with a large 2:1 image. Make a copy. Crop and then resize to produce the images of each lense. 
+# the resizing and rechaping should be done according to two values representing the beguining of the users unsusable FOV in each eye. 
+'''
+PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
+PIL_image.show()
+print(PIL_image)
+
+image= torchvision.io.read_image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",ImageReadMode.UNCHANGED)
+print(image.size())
+
+image= TF.resize(image,(400,400))
+print(image.size())
+
+PIL_image=TF.resize(PIL_image,(400,400))
+PIL_image.show()
+'''
+##Now create two windows in the correct area of each lense
+
+
+END
