@@ -1,8 +1,11 @@
+import socket, pickle
+from os import set_inheritable
+import paramiko  
+import struct
+
 from tkinter.constants import LEFT
 from PySimpleGUI.PySimpleGUI import Window
 from torchvision.io.image import ImageReadMode
-import torchvision.transforms as T
-import torch
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as T
@@ -10,8 +13,7 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms.functional as TF
-from torchvision.utils import make_grid
-from torchvision.utils import save_image
+from torchvision.utils import make_grid,save_image
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -21,213 +23,189 @@ from PIL import Image
 import cv2
 
 
-import sdl2
-import sys 
-import sdl2.ext
+
+#import sdl2
+#import sys 
+#import sdl2.ext
 import PySimpleGUI as sg
 
 #Paramiko:Alloews us to make an "ssh client" which is an object representating a connection with an SSH  server.  
 
-import paramiko  
-'''
-Resources= sdl2.ext.Resources(__file__,"Dead aphid.jpg")
+right_pi_IP='192.168.1.113'
+Left_pi_IP='192.168.1.78'
 
-sdl2.ext.init() 
-
-window = sdl2.ext.Window('Hellow World!',size=(640,480))
-window.show()
-
-factory = sdl2.ext.SpriteFactory(sdl2.ext.SOFTWARE)
-sprite= factory. from_image(Resources.get_path("Dead aphid.jpg"))
-
-spriterenderer= factory. create_sprite_render_system(window)
-spriterenderer.render(sprite) 
-
-processor = sdl2.ext.TestEventProcessor()
-processor.run(window)
-
-'''
-
-
-'''
-##this is practice code for getting familiar with tensors and other pytorch concepts. 
-Test_tensor=torch.rand(3,4)
-print(Test_tensor)
-Test_tensor_Elements_Selection=(Test_tensor[:,-1])
-print(Test_tensor_Elements_Selection)
+HOST = "192.168.1.204" #IP of the computer that will receive the data from the Pi
+PORT = 50007 #An arbitrary port
+PORT2 = 50006
+buffer = 4096 #The max number of bytes to be recevied per packet. Default 4096 but this is v small. Max seems to be 10000000000 before memory errors pop up.
 
 
 
-#practice code ends here. Should delete once fully familiar. 
-'''
+class testDisplayer():
+    
+    def test_update1 (self,frame):
+        cv2.imshow('window1',frame)
 
+    def test_update2 (self,frame):
+        
+        cv2.imshow('window2',frame)
+        
 
-#Video_file_timestamps= torchvision.io.read_video_timestamps("C:\\Users\\lorca\\IT masters\\Dissertation\\360_video test.mp4",'sec')
+class displayer():
+    #Device container, width is not equal to vivible width. 
+    devices={'HTCVive':{'width':2100,'center':1050,'height':1500}}
+    #type is the type of hemianopsia the user has.
+    #Border_le and Border_ri mark the separation of the screen in pixels. 
+    
 
-#print(Video_file_timestamps)
-'''
-Video_file =torchvision.io.read_video("C:\\Users\\lorca\\IT masters\\Dissertation\\TestVideo.mp4",0,1,'sec')
-print(Video_file[0][0][0][0][0])
-tensor_image =Video_file[0][0][0][0]
-
-print (type (Video_file[0][0][0][0][0]))
-
-'''
-
+    def __init__(self,device,Border_le,Border_ri,type):
+        self.device=device
+        layout=[[sg.Image(key='Image')]]
+        layout2=[[sg.Image(key='Image')]]
+        if type == 'Homonimous left':
+            self.right_window=sg.Window('right',no_titlebar=True,layout=layout,location=Border_ri,size=(self.devices[device]['width']-Border_ri,self.devices[device]['height']))
+            self.left_window=sg.Window('left',no_titlebar=True,layout=layout2,location=Border_le,size=(self.devices[device]['center']-Border_le,self.devices[device]['height']))
+        elif type == 'Homonymous right':
+            self.right_window= sg.Window('right',no_titlebar=True,layout=layout,location=self.devices[device]['center'],size=(self.devices[device]['center'],self.devices[device]['center']))
+            self.left_window=sg.Window('right',no_titlebar=True,layout=layout2,location=0,size=(Border_le,self.devices[device]['width']))
+    def right_update(self,imgTensor):
+        #Transform1=T.ToPILImage()
+        #Image=Transform1(imgTensor)
+        im_pil = Image.fromarray(imgTensor)
+        self.right_window['Image'].update(Image)
+    def left_update(self, imgTensor):
+        #Transform1=T.ToPILImage()
+        #Image=Transform1(imgTensor)
+        im_pil = Image.fromarray(imgTensor)
+        self.left_window['Image'].update(Image)
 
 
 def main():
 
+
+    
     Info = GUI0()
-    #Left_window=makeWindow('left',Info['leftLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
-    #Right_window=makeWindow('left',Info['rightLense_Border'],Info['Headset_Type'],Info['Hemianopsia_Type'])
+    
+    
     counter=0
     
+    #displayer1 = displayer(Info['Headset_Type'],Info['leftLense_Border'],Info['rightLense_Border'],Info['Hemianopsia_Type'])
+    
+    displayer1=testDisplayer()
+
+    ##Use paramiko to create a connection. We will be using this to run the necessary scripts on the pi's 
     RasPiLe=paramiko.SSHClient()        
     RasPiLe.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     #RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi',key_filename='C:\\Users\\lorca\\Desktop\\private key 113')
     RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi')
     
     #RasPiRi=paramiko.SSHClient()
-    #RasPiRi.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    #RasPiRi.set_missing_host_key_policy(paramik(o.AutoAddPolicy())
     #RasPiRi.connect('192.168.1.113',port=22,username='pi',password='superpi')
-    
+
     stdin,stdout,stderr=RasPiLe.exec_command('python /home/pi/Desktop/camCap/getFile.py')
-    print (type(stdout))
-    output_Le=[]
-    for line in stdout:
-        output_Le.append(line)
-    print(output_Le)
-    output_Le__=stdout.readline()
-    print (type(output_Le__))
-    error_Le=stderr.readline()
-    print(output_Le__)
-    print(error_Le)
-    
-    #loop through this to create the stream 
-    #while(True):
-    for i in range(1,3):
-        ##get frame from left side pi
-        stdin,stdout,stderr=RasPiLe.exec_command('Desktop/getFile.py')
-        output_Le=stdout.readline()
-        print(output_Le)
-        ##get frame from right side pi
-        #stdin,stdout,stderr=RasPiRi.exec_command('Desktop/getFile.py')
-        #output_Ri=stdout.readline()
-        #print(output_Ri)
-        ##send opnCV tensor (as  a string) to be tranformed into a pytorch tensor and displayed.
-        #Transform_and_render(left=output_le,right=output_ri)
 
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((HOST, PORT))#Affix to local machine
+    s.listen()
+    conn,addr=s.accept()#accept any connection
+    print (addr)
+    if addr[0]== Left_pi_IP: 
+        conn_Le=conn
+        sLe=s
+        print('le_connct')
+    elif addr[0]==right_pi_IP:
+        conn_Ri=conn
+        sRi=s
+        print('ri_connct')
+
+    #s2 is the local socket, while conn_Le is the server socket in the left pi. 
+    s2 =socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s2.bind((HOST, PORT2))#Affix to local machine
+    s2.listen()
+    conn2,addr2=s2.accept()#accept any connection
+    print (addr2)
+    if addr2[0]== Left_pi_IP: 
+        conn_Le=conn2
+        sLe=s2
+        print('le_connct')
+    elif addr2[0]==right_pi_IP:
+        conn_Ri=conn2
+        sRi=s2
+        print('ri_connct')
+    
+
+    message_sect1_size=struct.calcsize('Q')#size of the initial secion of the message, which conatins the ength of the rest.
+    #in tutotrials, this is names 'payload size'.
+    while True:
+        data_Ri=b''
+        #get the frame form left pi. 
+        #first we get the initial section which contains the length od the message. 
+        while len(data_Ri)<message_sect1_size:
+            print ('in loop Ri1')
+            packet=conn_Ri.recv(4*1024)
+            if not packet: break #in case this point is reached before data starts to arrive. 
+            data_Ri+=packet
+        
+        ## Now take the first part of the message and unpack it so we can use it.
+        message_sect2_size=data_Ri[:message_sect1_size]
+        data_Ri = data_Ri[message_sect1_size:]
+        message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
+
+        #Now we get receive the second part of the message(the frame) and decode it with pickle.
+        while len(data_Ri)<message_sect2_size:
+            print('in loop ri 2')
+            data_Ri+=conn_Ri.recv(4*1024)
+        frame_Ri=data_Ri[:message_sect2_size]
+        other_data=data_Ri[message_sect2_size:]
+        frame_Ri= pickle.loads(frame_Ri)
+        ###DONE we have the frame. 
+
+        #Now we get the left one
+
+        
+        data_Le=b''
+        while len(data_Le)<message_sect2_size:
+            print('in loop le 1')
+            packet=conn_Le.recv(4*1024)
+            if not packet:break
+            data_Le+=packet
+
+          ## Now take the first part of the message and unpack it so we can use it.
+        message_sect2_size=data_Ri[:message_sect1_size]
+        data_Le = data_Le[message_sect1_size:]
+        message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
+        
+        #Now we get receive the second part of the message(the frame) and decode it with pickle.
+        
+        while len(data_Le)<message_sect2_size:
+            print ('in loop le 2')
+            data_Le+=conn_Le.recv(4*1024)
+        frame_Le=data_Le[:message_sect2_size]
+        other_data=data_Le[message_sect2_size:]
+        frame_Le= pickle.loads(frame_Le)
+        
+        ###DONE we have both frames. 
+        # Now we transfomr the frames and send them.  
+
+
+        #these two lines are astandin for the actural trnasformation process that is not yet developed. 
+        #they merely return what they are sent!
+        frame_Le=transform_Images(frame_Le)
+        frame_Ri=transform_Images(frame_Ri)
+        
+        print('updating frames')
+        
+        displayer1.test_update1(frame_Le)
+        displayer1.test_update2(frame_Ri)
+        
+        #displayer1.left_update(frame_le)
+        #displayer1.right_update(frame_ri)
+        
+        #middle_section_method(frame_le,frame_ri)
+        
    
-   
-    #    Left_window['Frame'].update()
-    #    Right_window['Frame'].update()
-
-    #Right_window.close()
-    #Left_window.close()
-    
-    '''
-    PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
-    
-
-    image= torchvision.io.read_image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",ImageReadMode.UNCHANGED)
-    
-
-    image= TF.resize(image,(400,400))
-   
-
-    PIL_image=TF.resize(PIL_image,(400,400))
-   '''
-
-#set up pathway from the raspberry pie
-            
-
-
-#Store the dimensions of the different size objects. 
-
-Sizes={'HTC_vive':(1080 , 1200)}
-def getHeight(headset):
-    return Sizes[headset][0]
-def getWidth(headset):
-    return Sizes[headset][1]
-    
-##Program starts by calling this GUI where the user chooses a user profile to load a previously measured FOV** limits or start the program that measures it. 
-#Also asks to declare the tipe of device.
-def GUI0():
-    #add simple GUI that allows profile choosing 
-
-    #GUI here
-
-    #add Tkinter GUI that allows the measurement of FOV.
-
-    # 
-
-    #GUI here
-     
-    #  
-    DICT= {}
-    DICT['Headset_Type']='HTC_vive'
-    DICT['rightLense_Border']=600
-    DICT['leftLense_Border']=600
-    DICT['Hemianopsia_Type']='homonymous_left'
-    return DICT
-
-##Get input. Start the cameras or connect to the source. 
-
-
-### Part of the program that transformas and displays the images
-
-
-
-sample_border=500 
-def RasPi_Frame_Transform(image1,image2):
-
-    image1_central=TF.crop
-
-
-def makeWindow(lense,border,headset_type,Hemianopsia_type):
-    PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
-    layout= [[sg.InputText(key='Tests')]]
-    #layout= [[sg.Image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",key='Frame')]]
-    height=getHeight(headset_type)
-    width=''
-    location=''
-    if Hemianopsia_type=='homonymous_right':
-        if  lense=='left':
-            location=(0,0)
-            width=border
-        elif lense=='right':
-            location=(0,0)
-            width=border
-    elif Hemianopsia_type== 'homonymous_left':
-        if  lense=='left':
-            location=(0,border)
-            width=getWidth(headset_type)-border
-        elif lense=='right':
-            location=(0,border)
-    Window_identifier= lense+' lense window'
-    return sg.Window(Window_identifier,no_titlebar=True,layout=layout,location=location,size=(height,width))    
-
-
-
-##starting with a large 2:1 image. Make a copy. Crop and then resize to produce the images of each lense. 
-# the resizing and rechaping should be done according to two values representing the beguining of the users unsusable FOV in each eye. 
-'''
-PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
-PIL_image.show()
-print(PIL_image)
-
-image= torchvision.io.read_image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",ImageReadMode.UNCHANGED)
-print(image.size())
-
-image= TF.resize(image,(400,400))
-print(image.size())
-
-PIL_image=TF.resize(PIL_image,(400,400))
-PIL_image.show()
-'''
-##Now create two windows in the correct area of each lense
-
 
 
 
