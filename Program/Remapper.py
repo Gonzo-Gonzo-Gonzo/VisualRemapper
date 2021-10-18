@@ -1,23 +1,20 @@
+
 import socket, pickle
-from os import set_inheritable
 import paramiko  
 import struct
 
-from tkinter.constants import LEFT
 from PySimpleGUI.PySimpleGUI import Window
 from torchvision.io.image import ImageReadMode
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as T
-import torch
-import torch.nn as nn
-import torchvision
+
+
+
 import torchvision.transforms.functional as TF
 from torchvision.utils import make_grid,save_image
 import matplotlib.pyplot as plt
 import numpy as np
-import random
-import PIL
+
 from PIL import Image 
 
 import cv2
@@ -35,8 +32,8 @@ right_pi_IP='192.168.1.113'
 Left_pi_IP='192.168.1.78'
 
 HOST = "192.168.1.204" #IP of the computer that will receive the data from the Pi
-PORT = 50007 #An arbitrary port
-PORT2 = 50006
+PORT = 100 #An arbitrary port
+PORT2 = 101
 buffer = 4096 #The max number of bytes to be recevied per packet. Default 4096 but this is v small. Max seems to be 10000000000 before memory errors pop up.
 
 
@@ -49,6 +46,9 @@ class testDisplayer():
     def test_update2 (self,frame):
         
         cv2.imshow('window2',frame)
+
+    def transform_frame(self,frame):
+        return frame
         
 
 class displayer():
@@ -84,7 +84,7 @@ def main():
 
 
     
-    Info = GUI0()
+    #Info = GUI0()
     
     
     counter=0
@@ -144,7 +144,7 @@ def main():
         #first we get the initial section which contains the length od the message. 
         while len(data_Ri)<message_sect1_size:
             print ('in loop Ri1')
-            packet=conn_Ri.recv(4*1024)
+            packet=conn_Ri.recv(32*1024)
             if not packet: break #in case this point is reached before data starts to arrive. 
             data_Ri+=packet
         
@@ -155,13 +155,13 @@ def main():
 
         #Now we get receive the second part of the message(the frame) and decode it with pickle.
         while len(data_Ri)<message_sect2_size:
-            print('in loop ri 2')
-            data_Ri+=conn_Ri.recv(4*1024)
+            print('in loop ri 2 ' + str(len(data_Ri))+ ' '+str(message_sect2_size))
+            data_Ri+=conn_Ri.recv(1000000000)
         frame_Ri=data_Ri[:message_sect2_size]
         other_data=data_Ri[message_sect2_size:]
         frame_Ri= pickle.loads(frame_Ri)
         ###DONE we have the frame. 
-
+        displayer1.test_update1(frame_Ri)
         #Now we get the left one
 
         
@@ -173,15 +173,15 @@ def main():
             data_Le+=packet
 
           ## Now take the first part of the message and unpack it so we can use it.
-        message_sect2_size=data_Ri[:message_sect1_size]
+        message_sect2_size=data_Le[:message_sect1_size]
         data_Le = data_Le[message_sect1_size:]
         message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
         
         #Now we get receive the second part of the message(the frame) and decode it with pickle.
         
         while len(data_Le)<message_sect2_size:
-            print ('in loop le 2')
-            data_Le+=conn_Le.recv(4*1024)
+            print ('in loop le 2 '+ str(len(data_Le))+' '+str(message_sect2_size))
+            data_Le+=conn_Le.recv(1000000000)
         frame_Le=data_Le[:message_sect2_size]
         other_data=data_Le[message_sect2_size:]
         frame_Le= pickle.loads(frame_Le)
@@ -192,12 +192,12 @@ def main():
 
         #these two lines are astandin for the actural trnasformation process that is not yet developed. 
         #they merely return what they are sent!
-        frame_Le=transform_Images(frame_Le)
-        frame_Ri=transform_Images(frame_Ri)
+        frame_Le=displayer1.transform_frame(frame_Le)
+        frame_Ri=displayer1.transform_frame(frame_Ri)
         
         print('updating frames')
         
-        displayer1.test_update1(frame_Le)
+        
         displayer1.test_update2(frame_Ri)
         
         #displayer1.left_update(frame_le)
@@ -206,7 +206,6 @@ def main():
         #middle_section_method(frame_le,frame_ri)
         
    
-
 
 
 
