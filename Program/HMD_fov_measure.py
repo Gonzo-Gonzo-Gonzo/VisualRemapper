@@ -87,12 +87,13 @@ def Oval_loop(container,window,height,width):
     window.update()
     #use x_pos as a pointer to the place in the screen that the canvas has been in.
     while container.y_pos<height:
-        #this for loop allows us to loop twice,one for each side of the eye. 
+        #this for loop allows us to loop once for each for each the eye. 
         for i in [2,1]:
-            #make a noise to indicate the oval has started looping. So that user knows to expect to see the oval.
-            for x in []
+            #this for loop allows us to loop in both directions to measure the borders on each side.  
+            for x in [50,-50]:
+                #make a noise to indicate the oval has started looping. So that user knows to expect to see the oval.
                 winsound.Beep(2500,100)
-                while container.x_pos<width/i:
+                while container.x_pos!=width/i:
                     #draw an oval in x_pos (it stars at 0 then 10 in the secon itteration, 20,30,40,etc)
                     oval=canvas.create_oval(container.x_pos,container.y_pos,container.x_pos+5,container.y_pos+5)
                     #update the window to show the oval. this also registers a click in the n otify buttn?
