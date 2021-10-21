@@ -89,27 +89,27 @@ def Oval_loop(container,window,height,width):
     while container.y_pos<height:
         #this for loop allows us to loop once for each for each the eye. 
         for i in [2,1]:
-            #this for loop allows us to loop in both directions to measure the borders on each side.  
-            for x in [50,-50]:
-                #make a noise to indicate the oval has started looping. So that user knows to expect to see the oval.
-                winsound.Beep(2500,100)
-                while container.x_pos!=width/i:
-                    #draw an oval in x_pos (it stars at 0 then 10 in the secon itteration, 20,30,40,etc)
-                    oval=canvas.create_oval(container.x_pos,container.y_pos,container.x_pos+5,container.y_pos+5)
-                    #update the window to show the oval. this also registers a click in the n otify buttn?
-                    window.update_idletasks()
-                    window.update()
-                    #winsound.Beep(2500,100)#ADD A BEEP TO MAKE THE ui MORE FIRENDLY, COORDINATE IT WITHT EH MOVEMENT OF THE OVAL
-                    #give the user a moment to se the oval.
-                    time.sleep(0.5)
-                    #update to register events of button
-                    window.update()
-                    canvas.delete(oval)
-                    #update to shwo deletion. 
-                    window.update_idletasks()
-                    window.update()
-                    #increase x_pos
-                    container.update_xpos(container.x_pos+x)
+            x=50
+            # something similar to this: for x in [50,-50] can be added to make the loop gpo in both diractions and measure the corders more easily. But it wasn't implemented succesfully, 50 not being an accurate enough number, which made the oval skip the midway border.   
+            #make a noise to indicate the oval has started looping. So that user knows to expect to see the oval.
+            winsound.Beep(2500,100)
+            while container.x_pos<width/i:
+                #draw an oval in x_pos (it stars at 0 then 10 in the secon itteration, 20,30,40,etc)
+                oval=canvas.create_oval(container.x_pos,container.y_pos,container.x_pos+5,container.y_pos+5)
+                #update the window to show the oval. this also registers a click in the n otify buttn?
+                window.update_idletasks()
+                window.update()
+                #winsound.Beep(2500,100)#ADD A BEEP TO MAKE THE ui MORE FIRENDLY, COORDINATE IT WITHT EH MOVEMENT OF THE OVAL
+                #give the user a moment to se the oval.
+                time.sleep(0.5)
+                #update to register events of button
+                window.update()
+                canvas.delete(oval)
+                #update to shwo deletion. 
+                window.update_idletasks()
+                window.update()
+                #increase x_pos
+                container.update_xpos(container.x_pos+x)
             
         container.update_xpos(0)
         container.update_ypos(container.y_pos+50)
