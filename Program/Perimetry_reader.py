@@ -1,3 +1,18 @@
+'''
+DEBUGGING:
+Problem:windows wont render.
+
+try changing the update methods
+
+look for iisues in the creation of the canvases.
+
+There might be a loop issue (loops running within loop)
+there might be a problem with all the threads we are using,
+try running the program without them, they may not be needed!
+
+
+'''
+
 from tkinter import Tk, Canvas, Frame, BOTH,ttk
 import time
 import tkinter
@@ -52,14 +67,18 @@ def main (HemianopsiaType='left'):
     if HemianopsiaType=='left':
         #do the left eye
         Oval_thread_Le=threading.Thread(target=Oval_loop_B_A(container=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center(0),centery=left_lense_center(1)))
+        Oval_thread_Le.start()
         Left_Border=Oval_thread_Le.join()
         #do the right eye
         Oval_thread_Ri= threading.Thread(target=Oval_loop_B_A(data,root,lense_edges['right_lense_right'],lense_edges['right_lense_left'],centerx=right_lense_center(0),centery=right_lense_center(1)))
+        Oval_thread_Ri.start()
         Right_border=Oval_thread_Ri.join()
     elif HemianopsiaType=='right':
         Oval_thread_Le=threading.Thread(target=Oval_loop_A_B(data,root,lense_edges['left_lense_left'],lense_edges['left_lense_right'],centerx=left_lense_center(0),centery=left_lense_center(1)))
+        Oval_thread_Le.start()
         Left_Border=Oval_thread_Le.join()
         Oval_thread_Ri=threading.Thread(target=Oval_loop_A_B(data,root,lense_edges['right_lense_left'],lense_edges['right_lense_right'],centerx=left_lense_center(0),centery=left_lense_center(1)))
+        Oval_thread_Ri.start()
         Right_border=Oval_thread_Ri.join()    
     
     print (Left_border)
@@ -71,6 +90,7 @@ def main (HemianopsiaType='left'):
 def Oval_loop_A_B(container,window,A, B, centerx,centery):
     canvas=Canvas(window,width=width,heigh=height,bg='#fff')
     canvas.create_oval(centerx,centery,centerx+20,centery+20,_Color='red')
+    canvas.grid(row=0,rowspan=3)
     window.update()
     container.y_pos = 500
     container.x_pos = A
@@ -83,6 +103,7 @@ def Oval_loop_A_B(container,window,A, B, centerx,centery):
 def Oval_loop_B_A(container,window,A, B, centerx,centery,ri_or_le):
     canvas=Canvas(window,width=width,heigh=height,bg='#fff')
     canvas.create_oval(centerx,centery,centerx+20,centery+20,_Color='red')
+    canvas.grid(row=0,rowspan=3)
     window.update()
     container.y_pos = 500
     container.x_pos = B
