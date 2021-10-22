@@ -1,6 +1,6 @@
 '''
 DEBUGGING:
-Problem:windows wont render.
+    Problem:windows wont render.
 
 try changing the update methods
 
