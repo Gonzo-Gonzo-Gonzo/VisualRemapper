@@ -47,31 +47,31 @@ class container():
         
 
 #In the width and height variables of the main loop you must enter the width and the height of the VR screen. 
-def main (HemianopsiaType='left'):
+def main (HemianopsiaType='right'):
     
     #create the data for xpos, y pos and the blindsdpots
     data = container()
     #create the root window
     root = Tk()
     #place the window in the right place
-    Screen_height=root.winfo_screenheight()
-    Screen_width=root.winfo_screenwidth()
-    root.geometry((str(Screen_width)+'x'+str(Screen_height)+'+0+0'))
+    Screen_height=root.winfo_screenheight()-100
+    Screen_width=root.winfo_screenwidth()-100
+    root.geometry((str(Screen_width+20)+'x'+str(Screen_height+20)+'+0+0'))
+    #create the canvas and put it on the window
+    canvas=Canvas(root,width=Screen_width,height=Screen_height,bg='#fff')
+    canvas.grid(row=0,rowspan=3)
+    root.update()
     #create a button for notifying and put it in the root window
     btn=ttk.Button(root, text='Notify')
     #Bind it to the notify function in the data. 
-    
     btn.bind('<Button-1>',data.Notify)
+    #place the button at the bottom right 
     btn.grid(row=3,rowspan=1)
-    root.update_idletasks()
+    root.update()
     
     right_can='' 
     left_can=''
 
-    #Create a thread that will run the loop of the window showing a moving dot across the window. 
-    #pass it the window, so it can create a canvas and put it in there.
-    #pass it the data so it can update the spos and the ypos variables as it moves the oval across the screen. 
-    #also pass it the width and the hight of the scree because it will need those to make the canvas and tu run its while loop.
     
     #realcenters need to be calculated with fov_measure of particular device. 
     left_lense_center=[Screen_width/4,Screen_height/2]
@@ -79,42 +79,43 @@ def main (HemianopsiaType='left'):
     #real {'left_lense_left':250,'left_lense_right':900,'right_lense_left':1100,'right_lense_right':1800}
     lense_edges={'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width}
 
-    Right_border = ''
-    Left_border = ''
+    right_border = ''
+    left_border = ''
     
-    canvas=Canvas(root,width=width,height=height,bg='#fff')
-    canvas.grid(row=0,rowspan=3)
-    
+
     if HemianopsiaType=='left':
         
         #do the left eye
         #Oval_loop_B_A(data=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center[0],centery=left_lense_center[1])
+        
 
-        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center[0],centery=left_lense_center[1])
-        
+        thread=threading.Thread(target=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center[0],centery=left_lense_center[1]))
+        thread.start()
+        left_border=thread.join() 
         #do the right eye
-        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_right'],B=lense_edges['right_lense_left'],centerx=right_lense_center[0],centery=right_lense_center[1])
-        
+        thread=threading.Thread(target=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_right'],B=lense_edges['right_lense_left'],centerx=right_lense_center[0],centery=right_lense_center[1]))
+        thread.start()
+        reft_border= thread.join()
 
         
     elif HemianopsiaType=='right':
-        Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_left'],B=lense_edges['left_lense_right'],centerx=left_lense_center[0],centery=left_lense_center[1])
+        left_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_left'],B=lense_edges['left_lense_right'],centerx=left_lense_center[0],centery=left_lense_center[1])
         
-        Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_left'],B=lense_edges['right_lense_right'],centerx=right_lense_center[0],centery=right_lense_center[1])
+        right_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_left'],B=lense_edges['right_lense_right'],centerx=right_lense_center[0],centery=right_lense_center[1])
         
             
     
-    print (Left_border)
-    print(Right_border)
-    borders ={'Left_border': Left_border,'Right_border':Right_border}
+    print (left_border)
+    print(right_border)
+    borders ={'Left_border': left_border,'Right_border':right_border}
     return borders
 
 #In this function, the oval moves rightwards. 
 def Oval_loop_A_B_right(data,window,A, B, centerx,centery,canvas):#A must be smaller than B
     #canvas=Canvas(window,width=width,heigh=height,bg='#fff')
-    center_oval=canvas.create_oval(centerx,centery,centerx+20,centery+20, fill='#ff0000')
+    center_oval=canvas.create_oval(centerx,centery,centerx+50,centery+50, fill='#ff0000')
     
-    window.update_idletasks()
+    window.update()
     #set y_pos to be the center of the canvas.
     #real =500
 
@@ -124,11 +125,11 @@ def Oval_loop_A_B_right(data,window,A, B, centerx,centery,canvas):#A must be sma
     while data.x_pos<B:
         
         oval=canvas.create_oval(data.x_pos,data.y_pos,data.x_pos+20,data.y_pos+20)
-        window.update_idletasks()
+        window.update()
         time.sleep(0.1)
         data.update_xpos(data.x_pos+5)
         canvas.delete(oval)
-        window.update_idletasks()
+        window.update()
     canvas.delete(center_oval)
     return data.get_and_reset()
 
@@ -140,7 +141,7 @@ def Oval_loop_A_B_left(canvas,data,window,A, B, centerx,centery):#A must be larg
     center_oval=canvas.create_oval(centerx,centery,centerx+20,centery+20, fill='#ff0000')
     
    
-    window.update_idletasks()
+    window.update()
     #set y_pos to be the vertical middle of the canvas.
     data.y_pos = window.winfo_screenheight()/2
     data.update_xpos (A)
@@ -149,16 +150,19 @@ def Oval_loop_A_B_left(canvas,data,window,A, B, centerx,centery):#A must be larg
     while data.x_pos>B:
         
         oval=canvas.create_oval(data.x_pos,data.y_pos,data.x_pos+20,data.y_pos+20)
-        window.update_idletasks()
+        window.update()
         time.sleep(0.1)
         data.update_xpos(data.x_pos-5)
         canvas.delete(oval)
-        window.update_idletasks()
+        window.update()
     canvas.delete(center_oval)
     return data.get_and_reset()
 
 
-
+def testytest(A,B):
+    print (A)
+    print (B + 'b')
 
 if __name__ == '__main__':
-    main()
+    #main()
+    testytest(A,B)
