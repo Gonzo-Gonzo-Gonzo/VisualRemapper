@@ -18,12 +18,12 @@ import time
 import tkinter
 from tkinter.constants import W 
 import winsound
-import threading
+import threading #deprecated
 
  
 
-width=1920
-height=1080
+width=1920 #deprecated
+height=1080 #deprecated
 
 class container():
     x_pos=0
@@ -45,9 +45,17 @@ class container():
         return vals
        
         
+class reader():
+    def __init__(self, Display, Type):
+        self.Display= Display  
+        self.HemianopsiaType=Type
+    
+    def start(self):
+        borders=run_test(HemianopsiaType=self.HemianopsiaType,Display=self.Display)
+        return borders
 
 #In the width and height variables of the main loop you must enter the width and the height of the VR screen. 
-def main (HemianopsiaType='right'):
+def run_test (HemianopsiaType='right',Display='Test'):
     
     #create the data for xpos, y pos and the blindsdpots
     data = container()
@@ -74,10 +82,13 @@ def main (HemianopsiaType='right'):
 
     
     #realcenters need to be calculated with fov_measure of particular device. 
-    left_lense_center=[Screen_width/4,Screen_height/2]
-    right_lense_center=[3*Screen_width/4,Screen_height/2]
-    #real {'left_lense_left':250,'left_lense_right':900,'right_lense_left':1100,'right_lense_right':1800}
-    lense_edges={'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width}
+    
+    
+    
+    lense_Info={'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width}
+
+    lense_Info={'Test':{'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width,'right_lense_center':[3*Screen_width/4,Screen_height/2],'left_lense_center':[Screen_width/4,Screen_height/2]},'HTC_Vive':{'left_lense_left':250,'left_lense_right':900,'right_lense_left':1100,'right_lense_right':1800}}
+    lense_Info=lense_Info[Display]
 
     right_border = ''
     left_border = ''
@@ -86,22 +97,17 @@ def main (HemianopsiaType='right'):
     if HemianopsiaType=='left':
         
         #do the left eye
-        #Oval_loop_B_A(data=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center[0],centery=left_lense_center[1])
+        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['left_lense_right'],B=lense_Info['left_lense_left'],centerx=lense_Info['left_lense_center'][0],centery=lense_Info['left_lense_center'][1])
         
-
-        thread=threading.Thread(target=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_right'],B=lense_edges['left_lense_left'],centerx=left_lense_center[0],centery=left_lense_center[1]))
-        thread.start()
-        left_border=thread.join() 
         #do the right eye
-        thread=threading.Thread(target=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_right'],B=lense_edges['right_lense_left'],centerx=right_lense_center[0],centery=right_lense_center[1]))
-        thread.start()
-        reft_border= thread.join()
+        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['right_lense_right'],B=lense_Info['right_lense_left'],centerx=lense_Info['right_lense_center'][0],centery=lense_Info['right_lense_center'][1])
+        
 
         
     elif HemianopsiaType=='right':
-        left_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['left_lense_left'],B=lense_edges['left_lense_right'],centerx=left_lense_center[0],centery=left_lense_center[1])
+        left_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_Info['left_lense_left'],B=lense_Info['left_lense_right'],centerx=lense_Info['left_lense_center'][0],centery=lense_Info['left_lense_center'][1])
         
-        right_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_edges['right_lense_left'],B=lense_edges['right_lense_right'],centerx=right_lense_center[0],centery=right_lense_center[1])
+        right_border=Oval_loop_A_B_right(canvas=canvas,data=data,window=root,A=lense_Info['right_lense_left'],B=lense_Info['right_lense_right'],centerx=lense_Info['right_lense_center'][0],centery=lense_Info['right_lense_center'][1])
         
             
     
@@ -159,10 +165,5 @@ def Oval_loop_A_B_left(canvas,data,window,A, B, centerx,centery):#A must be larg
     return data.get_and_reset()
 
 
-def testytest(A,B):
-    print (A)
-    print (B + 'b')
 
-if __name__ == '__main__':
-    #main()
-    testytest(A,B)
+
