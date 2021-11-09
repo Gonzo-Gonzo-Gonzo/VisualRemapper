@@ -8,7 +8,8 @@ from torchvision.io.image import ImageReadMode
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
 
-
+import matplotlib
+import os.path
 
 import torchvision.transforms.functional as TF
 from torchvision.utils import make_grid,save_image
@@ -28,10 +29,10 @@ import PySimpleGUI as sg
 
 #Paramiko:Alloews us to make an "ssh client" which is an object representating a connection with an SSH  server.  
 
-right_pi_IP='192.168.1.113'
-Left_pi_IP='192.168.1.78'
+right_pi_IP='192.168.1.175'
+Left_pi_IP='192.168.1.103'
 
-HOST = "192.168.1.204" #IP of the computer that will receive the data from the Pi
+HOST = "192.168.1.121" #IP of the computer that will receive the data from the Pi
 PORT = 100 #An arbitrary port
 PORT2 = 101
 buffer = 4096 #The max number of bytes to be recevied per packet. Default 4096 but this is v small. Max seems to be 10000000000 before memory errors pop up.
@@ -42,6 +43,7 @@ class testDisplayer():
     
     def test_update1 (self,frame):
         cv2.imshow('window1',frame)
+        cv2.waitKey(20)
 
     def test_update2 (self,frame):
         
@@ -80,6 +82,9 @@ class displayer():
         self.left_window['Image'].update(Image)
 
 
+def main_test():
+    transform('','','','')
+
 def main():
 
 
@@ -96,12 +101,12 @@ def main():
     ##Use paramiko to create a connection. We will be using this to run the necessary scripts on the pi's 
     RasPiLe=paramiko.SSHClient()        
     RasPiLe.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi',key_filename='C:\\Users\\lorca\\Desktop\\private key 113')
-    RasPiLe.connect('192.168.1.113',port=22,username='pi',password='superpi')
+    #RasPiLe.connect('192.168.1.175',port=22,username='pi',password='superpi',key_filename='C:\\Users\\lorca\\Desktop\\private key 113')
+    RasPiLe.connect('192.168.1.175',port=22,username='pi',password='superpi')
     
-    #RasPiRi=paramiko.SSHClient()
-    #RasPiRi.set_missing_host_key_policy(paramik(o.AutoAddPolicy())
-    #RasPiRi.connect('192.168.1.113',port=22,username='pi',password='superpi')
+    RasPiRi=paramiko.SSHClient()
+    RasPiRi.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    RasPiRi.connect('192.168.1.103',port=22,username='pi',password='superpi')
 
     stdin,stdout,stderr=RasPiLe.exec_command('python /home/pi/Desktop/camCap/getFile.py')
 
@@ -113,11 +118,11 @@ def main():
     print (addr)
     if addr[0]== Left_pi_IP: 
         conn_Le=conn
-        sLe=s
+        sLe=s #listening socket, dont use 
         print('le_connct')
     elif addr[0]==right_pi_IP:
         conn_Ri=conn
-        sRi=s
+        sRi=s#listening socket, dont use
         print('ri_connct')
 
     #s2 is the local socket, while conn_Le is the server socket in the left pi. 
@@ -128,11 +133,11 @@ def main():
     print (addr2)
     if addr2[0]== Left_pi_IP: 
         conn_Le=conn2
-        sLe=s2
+        sLe=s2#listening socket, dont use
         print('le_connct')
     elif addr2[0]==right_pi_IP:
         conn_Ri=conn2
-        sRi=s2
+        sRi=s2#listening socket, dont use
         print('ri_connct')
     
 
@@ -149,8 +154,9 @@ def main():
             data_Ri+=packet
         
         ## Now take the first part of the message and unpack it so we can use it.
+        #Remember, section 1 of the message is the length of section 2 of the message. 
         message_sect2_size=data_Ri[:message_sect1_size]
-        data_Ri = data_Ri[message_sect1_size:]
+        #data_Ri = data_Ri[message_sect1_size:]
         message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
 
         #Now we get receive the second part of the message(the frame) and decode it with pickle.
@@ -205,7 +211,77 @@ def main():
         
         #middle_section_method(frame_le,frame_ri)
         
+import numpy as np
+import time
+#Outputs two frames, which are then shown to the user in the vr.
+#it needs to be adaptable so we can change (i) the size of the output frames and (ii) the location within the VR lense of the frames.
+def transform (frame_le,frame_ri,width_le,width_ri):#In go two open cv frames from cameras with 62 degrees fov, the desired frame width and the desired frame location ('center','side' or 'rigth')
+    #set values for testing
+    width_le=200
+    width_ri=200
+    
+    result= [] #the list whene the images will be put.    
+    '''
+    cap=cv2.VideoCapture(0)
+    i=0
+    while i in range (1,2):
+        print('-')
+        ret, frame=cap.read()
+        print (frame)
+        print (frame.shape)
+        print (ret)
+        cv2.imshow('frame',frame)
+        cv2.waitKey(1)
+    cap.release()
+
+    
+    '''
+    #transform the image for the left eye. 
+    frame_le= cv2.imread('c:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Test frames\\left\\10.jpeg')
+    
+
+    #Rotate the image by 270 degrees using a rotation matrix. 
+
+    image_center = tuple(np.array(frame_le.shape[1::-1]) / 2)
+    rot_matrix = cv2.getRotationMatrix2D(image_center, 270, 1.0)
+    frame_le = cv2.warpAffine(frame_le, rot_matrix, frame_le.shape[1::-1], flags=cv2.INTER_LINEAR)
+    print (frame_le.shape)
+    frame_le=frame_le[0:639,70:440]
+    print (frame_le.shape)
+    frame_le=cv2.resize(src=frame_le,dsize=[int(width_le),639])
+    print (frame_le.shape)
+    result.append(frame_le)
+    #rotate the image by 90 degrees
+    
+    #do the same transformation for the right eye. 
+    frame_ri= cv2.imread('c:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Test frames\\right\\10.jpeg')
+    
+    image_center = tuple(np.array(frame_ri.shape[1::-1]) / 2)
+    rot_matrix = cv2.getRotationMatrix2D(image_center, 90, 1.0)
+    frame_ri = cv2.warpAffine(frame_ri, rot_matrix, frame_ri.shape[1::-1], flags=cv2.INTER_LINEAR)
+    frame_ri=frame_ri[0:639,70:440]
+    frame_ri=cv2.resize(src=frame_ri,dsize=[int(width_ri),639])
+    result.append(frame_ri)
+    #remove the padding form the image by cutting it. 
+
+    
+    return result
+
+    
+
+    
+
+
+    
+    while range(1,100):
+        cv2.imshow('frame_ri',frame_le)
+        cv2.imshow ('frame ri',frame_ri)
+        cv2.waitKey(1)
+
+
    
+ 
+    
 
 
 
