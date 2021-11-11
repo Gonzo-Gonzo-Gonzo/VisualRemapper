@@ -156,16 +156,17 @@ def main():
         ## Now take the first part of the message and unpack it so we can use it.
         #Remember, section 1 of the message is the length of section 2 of the message. 
         message_sect2_size=data_Ri[:message_sect1_size]
-        #data_Ri = data_Ri[message_sect1_size:]
+        data_Ri = b''
         message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
 
-        #Now we get receive the second part of the message(the frame) and decode it with pickle.
+        #Now we get receive the second part of thepu message(the frame) and decode it with pickle.
+        print(str(len(data_Ri))+'len data_ri')
+        print(str(message_sect2_size)+'message_sect2_size')
         while len(data_Ri)<message_sect2_size:
             print('in loop ri 2 ' + str(len(data_Ri))+ ' '+str(message_sect2_size))
-            data_Ri+=conn_Ri.recv(1000000000)
-        frame_Ri=data_Ri[:message_sect2_size]
-        other_data=data_Ri[message_sect2_size:]
-        frame_Ri= pickle.loads(frame_Ri)
+            data_Ri+=conn_Ri.recv(10000)
+        
+        frame_Ri= pickle.load(data_Ri)
         ###DONE we have the frame. 
         displayer1.test_update1(frame_Ri)
         #Now we get the left one

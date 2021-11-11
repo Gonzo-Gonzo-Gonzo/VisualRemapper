@@ -20,7 +20,7 @@ from tkinter.constants import W
 import winsound
 import threading #deprecated
 
- 
+lense_info={}
 
 width=1920 #deprecated
 height=1080 #deprecated
@@ -35,14 +35,20 @@ class container():
         self.y_pos=int
     def Notify(self,thing):
         print (thing)
+        print (self.x_pos)
+        print(self.y_pos)
         self.border_vals.append((self.x_pos,self.y_pos))
         print ('notified')
     def get_and_reset (self):
+        self.clean_data()
         vals=self.border_vals
         self.border_vals=[(0,0)]
         self.x_pos=0
         self.y_pos=0
+        print (vals)
         return vals
+    def clean_data(self):
+        self.border_vals=self.border_vals[1]
        
         
 class reader():
@@ -85,9 +91,11 @@ def run_test (HemianopsiaType='right',Display='Test'):
     
     
     
-    lense_Info={'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width}
-
+    #lense_Info contains the information necessary for arranging the canvas, button, window, etc, for each device. 
+    #The storage and access of of this information could be improved, in a future version a database should be used. 
     lense_Info={'Test':{'left_lense_left':0,'left_lense_right':Screen_width/2,'right_lense_left':Screen_width/2,'right_lense_right':Screen_width,'right_lense_center':[3*Screen_width/4,Screen_height/2],'left_lense_center':[Screen_width/4,Screen_height/2]},'HTC_Vive':{'left_lense_left':250,'left_lense_right':900,'right_lense_left':1100,'right_lense_right':1800}}
+    
+    
     lense_Info=lense_Info[Display]
 
     right_border = ''
@@ -97,10 +105,10 @@ def run_test (HemianopsiaType='right',Display='Test'):
     if HemianopsiaType=='left':
         
         #do the left eye
-        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['left_lense_right'],B=lense_Info['left_lense_left'],centerx=lense_Info['left_lense_center'][0],centery=lense_Info['left_lense_center'][1])
+        left_border=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['left_lense_right'],B=lense_Info['left_lense_left'],centerx=lense_Info['left_lense_center'][0],centery=lense_Info['left_lense_center'][1])
         
         #do the right eye
-        Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['right_lense_right'],B=lense_Info['right_lense_left'],centerx=lense_Info['right_lense_center'][0],centery=lense_Info['right_lense_center'][1])
+        right_border=Oval_loop_A_B_left(canvas=canvas,data=data,window=root,A=lense_Info['right_lense_right'],B=lense_Info['right_lense_left'],centerx=lense_Info['right_lense_center'][0],centery=lense_Info['right_lense_center'][1])
         
 
         

@@ -39,7 +39,6 @@ class container():
     x_pos=0
     y_pos=0
     invisible_areas=[(0,0)]
-
     def update_xpos(self,int):
         self.x_pos=int
     def update_ypos(self,int):
@@ -56,7 +55,7 @@ class container():
         
 
 #In the width and height variables of the main loop you must enter the width and the height of the VR screen. 
-def main (nameofHMD='HTC_Vive',width=1920,height=1080):
+def main (nameofHMD='HTC_Vive',width=500,height=500):
     #create the container for xpos, y pos and the blindsdpots
     data = container()
     #create the root window
@@ -65,7 +64,7 @@ def main (nameofHMD='HTC_Vive',width=1920,height=1080):
     btn=ttk.Button(root, text='Notify')
     #Bind it to the notify function in the container. 
     btn.bind('<Button-1>',data.Notify)
-    btn.pack()
+    btn.grid()
     #Create a thread that will run the loop of the window showing a moving dot across the window. 
     #pass it the window, so it can create a canvas and put it in there.
     #pass it the container so it can update the spos and the ypos variables as it moves the oval across the screen. 
@@ -98,7 +97,6 @@ def Oval_loop(container,window,height,width):
                 oval=canvas.create_oval(container.x_pos,container.y_pos,container.x_pos+5,container.y_pos+5)
                 #update the window to show the oval. this also registers a click in the n otify buttn?
                 window.update_idletasks()
-                window.update()
                 #winsound.Beep(2500,100)#ADD A BEEP TO MAKE THE ui MORE FIRENDLY, COORDINATE IT WITHT EH MOVEMENT OF THE OVAL
                 #give the user a moment to se the oval.
                 time.sleep(0.5)
@@ -118,4 +116,4 @@ def Oval_loop(container,window,height,width):
 
 
 if __name__ == '__main__':
-    main('HTC_vive')
+    main()
