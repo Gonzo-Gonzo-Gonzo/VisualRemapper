@@ -1,4 +1,4 @@
-
+#THE LENGTH OF A FRAME IS 921762 BYTES
 import socket, pickle
 import paramiko  
 import struct
@@ -33,9 +33,9 @@ right_pi_IP='192.168.1.175'
 Left_pi_IP='192.168.1.103'
 
 HOST = "192.168.1.121" #IP of the computer that will receive the data from the Pi
-PORT = 100 #An arbitrary port
-PORT2 = 101
-buffer = 4096 #The max number of bytes to be recevied per packet. Default 4096 but this is v small. Max seems to be 10000000000 before memory errors pop up.
+PORT = 107 #An arbitrary port
+PORT2 = 105
+buffer = 4096 #Deprecated and not used in alternate version The max number of bytes to be recevied per packet. Default 4096 but this is v small. Max seems to be 10000000000 before memory errors pop up.
 
 
 
@@ -43,11 +43,12 @@ class testDisplayer():
     
     def test_update1 (self,frame):
         cv2.imshow('window1',frame)
-        cv2.waitKey(20)
+        cv2.waitKey(1)
 
     def test_update2 (self,frame):
         
         cv2.imshow('window2',frame)
+        cv2.waitKey(1)
 
     def transform_frame(self,frame):
         return frame
@@ -88,32 +89,23 @@ def main_test():
 def main():
 
 
-    
+    sender_socket_ri=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    sender_socket_ri.connect((right_pi_IP,2000))
     #Info = GUI0()
-    
+    sender_socket_le=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    sender_socket_le.connect((Left_pi_IP,2000))
     
     counter=0
     
     #displayer1 = displayer(Info['Headset_Type'],Info['leftLense_Border'],Info['rightLense_Border'],Info['Hemianopsia_Type'])
     
     displayer1=testDisplayer()
-
-    ##Use paramiko to create a connection. We will be using this to run the necessary scripts on the pi's 
-    RasPiLe=paramiko.SSHClient()        
-    RasPiLe.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #RasPiLe.connect('192.168.1.175',port=22,username='pi',password='superpi',key_filename='C:\\Users\\lorca\\Desktop\\private key 113')
-    RasPiLe.connect('192.168.1.175',port=22,username='pi',password='superpi')
-    
-    RasPiRi=paramiko.SSHClient()
-    RasPiRi.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    RasPiRi.connect('192.168.1.103',port=22,username='pi',password='superpi')
-
-    stdin,stdout,stderr=RasPiLe.exec_command('python /home/pi/Desktop/camCap/getFile.py')
-
+    print ('1')
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((HOST, PORT))#Affix to local machine
     s.listen()
+    print('listening')
     conn,addr=s.accept()#accept any connection
     print (addr)
     if addr[0]== Left_pi_IP: 
@@ -144,6 +136,7 @@ def main():
     message_sect1_size=struct.calcsize('Q')#size of the initial secion of the message, which conatins the ength of the rest.
     #in tutotrials, this is names 'payload size'.
     while True:
+        '''
         data_Ri=b''
         #get the frame form left pi. 
         #first we get the initial section which contains the length od the message. 
@@ -158,48 +151,47 @@ def main():
         message_sect2_size=data_Ri[:message_sect1_size]
         #data_Ri = data_Ri[message_sect1_size:]
         message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
+        '''
+        request_message=pickle.dumps('1')
+        print (len(request_message))
+        sender_socket_ri.send(request_message)
+        data_Ri=b''
+        #Use recv to receive the message with the frame. 
+        #There is a risk that recv returns before receiving a whole frame.This will cause 'pickle.loads' to throw a 'dta truncated exception. 
+        while len(data_Ri)<307360:
+            data_Ri+=conn_Ri.recv(100000) #instruct the receive method to receive something the size of a frame in bytes
 
-        #Now we get receive the second part of the message(the frame) and decode it with pickle.
-        while len(data_Ri)<message_sect2_size:
-            print('in loop ri 2 ' + str(len(data_Ri))+ ' '+str(message_sect2_size))
-            data_Ri+=conn_Ri.recv(1000000000)
-        frame_Ri=data_Ri[:message_sect2_size]
-        other_data=data_Ri[message_sect2_size:]
-        frame_Ri= pickle.loads(frame_Ri)
+        try:
+            frame_Ri= pickle.loads(data_Ri)
+        except Exception:
+            print('error with unpickling')
+        
         ###DONE we have the frame. 
         displayer1.test_update1(frame_Ri)
         #Now we get the left one
-
-        
+        request_message=pickle.dumps('1')
+        print (len(request_message))
+        sender_socket_le.send(request_message)
         data_Le=b''
-        while len(data_Le)<message_sect2_size:
-            print('in loop le 1')
-            packet=conn_Le.recv(4*1024)
-            if not packet:break
-            data_Le+=packet
-
-          ## Now take the first part of the message and unpack it so we can use it.
-        message_sect2_size=data_Le[:message_sect1_size]
-        data_Le = data_Le[message_sect1_size:]
-        message_sect2_size= struct.unpack("Q",message_sect2_size)[0]
+        while len(data_Le)<307360:
+            data_Le+=conn_Le.recv(100000)
         
-        #Now we get receive the second part of the message(the frame) and decode it with pickle.
+        try:
+            frame_Le= pickle.loads(data_Le)
+        except:
+            print('error with unpickling')
         
-        while len(data_Le)<message_sect2_size:
-            print ('in loop le 2 '+ str(len(data_Le))+' '+str(message_sect2_size))
-            data_Le+=conn_Le.recv(1000000000)
-        frame_Le=data_Le[:message_sect2_size]
-        other_data=data_Le[message_sect2_size:]
-        frame_Le= pickle.loads(frame_Le)
         
+        displayer1.test_update2(frame_Ri)
         ###DONE we have both frames. 
         # Now we transfomr the frames and send them.  
+        print (frame_Le)
+        print(frame_Ri)
 
-
-        #these two lines are astandin for the actural trnasformation process that is not yet developed. 
+        #these two lines are a standin for the actual trnasformation process that is not yet developed. 
         #they merely return what they are sent!
-        frame_Le=displayer1.transform_frame(frame_Le)
-        frame_Ri=displayer1.transform_frame(frame_Ri)
+        #frame_Le=displayer1.transform_frame(frame_Le)
+        #frame_Ri=displayer1.transform_frame(frame_Ri)
         
         print('updating frames')
         
