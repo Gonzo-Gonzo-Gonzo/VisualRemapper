@@ -137,7 +137,8 @@ class displayer():
         rot_matrix = cv2.getRotationMatrix2D(image_center, 270, 1.0)
         frame_le = cv2.warpAffine(frame_le, rot_matrix, frame_le.shape[1::-1], flags=cv2.INTER_LINEAR)
         print (frame_le.shape)
-        #frame_le=frame_le[0:639,70:440]
+        #remove the padding
+        frame_le=frame_le[0:639,70:440]
         print(str(self.left_window.winfo_width())+' '+str(self.left_window.winfo_height()))
         frame_le=cv2.resize(src=frame_le,dsize=[self.left_window.winfo_width(),self.left_window.winfo_height()])
         print (frame_le.shape)
@@ -146,15 +147,17 @@ class displayer():
         
         #do the same transformation for the right eye. 
         
-        
+        #find center and rotate
         image_center = tuple(np.array(frame_ri.shape[1::-1]) / 2)
         rot_matrix = cv2.getRotationMatrix2D(image_center, 90, 1.0)
         frame_ri = cv2.warpAffine(frame_ri, rot_matrix, frame_ri.shape[1::-1], flags=cv2.INTER_LINEAR)
-        #frame_ri=frame_ri[0:639,70:440]
+        #remove the padding
+        frame_ri=frame_ri[0:639,70:440]
+        #resize
         print(str(self.right_window.winfo_width())+' '+str(self.right_window.winfo_height()))
         frame_ri=cv2.resize(src=frame_ri,dsize=[self.right_window.winfo_width(),self.right_window.winfo_height()])
         print (frame_ri.shape)
-        #remove the padding form the image by cutting it. 
+         
         result.append(frame_ri)
         result.append(frame_le)
         return result
