@@ -7,6 +7,7 @@ from PySimpleGUI.PySimpleGUI import Window
 from torchvision.io.image import ImageReadMode
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Dataset
+import tkinter as TK
 
 import matplotlib
 import os.path
@@ -60,9 +61,9 @@ class displayer():
     #Device container, width is not equal to visible width. 
     devices={'HTCVive':{'width':2100,'center':1050,'height':1500}}
     #type is the type of hemianopsia the user has.
-    #Border_le and Border_ri mark the separation of the screen, a horizontal pixel location where the border of the usersvisible field is.
+    #border_le and border_ri mark the separation of the screen, a horizontal pixel location where the border of the usersvisible field is.
     #IMPORTANT border variables are sensitive to the device they are displayed in. 
-    Patient_info= {'Hemianopsia_type':'Homonymous_left','border_ri':3000,'border_left':1000} 
+    Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':500} 
     
 
     def __init__(self, device, Patient_info):
@@ -70,26 +71,29 @@ class displayer():
         self.patient_info=Patient_info
         layout=[[sg.Image(key='Image')]]
         layout2=[[sg.Image(key='Image')]]
-        if type == 'Homonimous left':
-            self.right_window=sg.Window('right',no_titlebar=True,layout=layout,location=Patient_info['border_ri'],size=(self.devices[device]['width']-Patient_info['Border_ri'],self.devices[device]['height']))
-            self.left_window=sg.Window('left',no_titlebar=True,layout=layout2,location=Patient_info['Border_le'],size=(self.devices[device]['center']-Patient_info['Border_le'],self.devices[device]['height']))
-        elif type == 'Homonymous right':
-            self.right_window= sg.Window('right',no_titlebar=True,layout=layout,location=self.devices[device]['center'],size=(self.devices[device]['center'],self.devices[device]['center']))
-            self.left_window=sg.Window('right',no_titlebar=True,layout=layout2,location=0,size=(Patient_info['Border_le'],self.devices[device]['width']))
+        if Patient_info['Hemianopsia_type'] == 'Homonymous left':
+            #self.right_window=TK.
+            self.right_window=sg.Window('right',no_titlebar=True,layout=layout,location=(Patient_info['border_ri'],0),size=(self.devices[device]['width']-Patient_info['border_ri'],self.devices[device]['height']),finalize=True)
+            self.left_window=sg.Window('left',no_titlebar=True,layout=layout2,location=(Patient_info['border_le'],0),size=(self.devices[device]['center']-Patient_info['border_le'],self.devices[device]['height']),finalize=True)
+        elif Patient_info['Hemianopsia_type'] == 'Homonymous right':
+            self.right_window= sg.Window('right',no_titlebar=True,layout=layout,location=(self.devices[device]['center'],0),size=(self.devices[device]['center'],self.devices[device]['center']),finalize=True)
+            self.left_window=sg.Window('right',no_titlebar=True,layout=layout2,location=(0,0),size=(Patient_info['border_le'],self.devices[device]['width']),finalize=True)
     def update(self, frames):
-        def right_update(self,imgTensor):
+        def right_update(frame):
             #Transform1=T.ToPILImage()
             #Image=Transform1(imgTensor)
-            im_pil = Image.fromarray(imgTensor)
-            self.right_window['Image'].update(Image)
-        def left_update(self, imgTensor):
+            imgbytes = cv2.imencode('.png', frame)[1].tobytes()           
+            im_pil = Image.fromarray(frame)
+            self.right_window['Image'].update(imgbytes)
+        def left_update(frame):
             #Transform1=T.ToPILImage()
             #Image=Transform1(imgTensor)
-            im_pil = Image.fromarray(imgTensor)
-            self.left_window['Image'].update(Image)
-        right_update(frames[0])
-        left_update(frames[1])
-        
+            imgbytes = cv2.imencode('.png', frame)[1].tobytes()  
+            img_file=cv2. imwrite("frame.jpg" , frame) 
+            im_pil = Image.fromarray(frame)
+            self.left_window['Image'].update(imgbytes)
+        right_update(frame=frames[0])
+        left_update(frame=frames[1])
     def transform (self,frame_le,frame_ri):#In go two open cv frames from cameras with 62 degrees fov, the desired frame width and the desired frame location ('center','side' or 'rigth')
         #set values for testing
         
@@ -121,7 +125,7 @@ class displayer():
         print (frame_le.shape)
         frame_le=frame_le[0:639,70:440]
         print (frame_le.shape)
-        frame_le=cv2.resize(src=frame_le,dsize=[int(self.width_le),639])
+        frame_le=cv2.resize(src=frame_le,dsize=[int(self.left_window.size[0]),639])
         print (frame_le.shape)
         result.append(frame_le)
         #rotate the image by 90 degrees
@@ -133,15 +137,12 @@ class displayer():
         rot_matrix = cv2.getRotationMatrix2D(image_center, 90, 1.0)
         frame_ri = cv2.warpAffine(frame_ri, rot_matrix, frame_ri.shape[1::-1], flags=cv2.INTER_LINEAR)
         frame_ri=frame_ri[0:639,70:440]
-        frame_ri=cv2.resize(src=frame_ri,dsize=[int(width_ri),639])
+        frame_ri=cv2.resize(src=frame_ri,dsize=[int(self.right_window.size[1]),639])
         result.append(frame_ri)
         #remove the padding form the image by cutting it. 
 
         
         return result
-
-def main_test():
-    transform('','','','')
 
 def main():
     #temporary border variables. 
@@ -154,10 +155,11 @@ def main():
     sender_socket_le.connect((Left_pi_IP,2000))
     
     
-    displayer1 = displayer(Info['Headset_Type'],Info['Border_le'],Info['Border_ri'],Info['Hemianopsia_Type'])
+    displayer1 = displayer(Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':500},device='HTCVive')
+    
     #displayer1=testDisplayer()
 
-    print ('1')
+    
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((HOST, PORT))#Affix to local machine
@@ -208,7 +210,7 @@ def main():
             print('error with unpickling')
         
         ###DONE we have the frame. 
-        displayer1.test_update1(frame_Ri)
+        
         #Now we get the left one
         request_message=pickle.dumps('1')
         print (len(request_message))
