@@ -17,7 +17,7 @@ from torchvision.utils import make_grid,save_image
 import matplotlib.pyplot as plt
 import numpy as np
 
-from PIL import Image 
+from PIL import Image, ImageTk
 
 import cv2
 
@@ -58,40 +58,56 @@ class testDisplayer():
         
 
 class displayer():
+    standby_image=cv2.imread('C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\standby.jpg',0)
+    print (type(standby_image))
+    standby_image_pil=Image.fromarray(standby_image)
+    
     #Device container, width is not equal to visible width. 
     devices={'HTCVive':{'width':2100,'center':1050,'height':1500}}
     #type is the type of hemianopsia the user has.
     #border_le and border_ri mark the separation of the screen, a horizontal pixel location where the border of the usersvisible field is.
     #IMPORTANT border variables are sensitive to the device they are displayed in. 
-    Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':500} 
+    Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':1500} 
     
 
     def __init__(self, device, Patient_info):
         self.device=device
         self.patient_info=Patient_info
-        layout=[[sg.Image(key='Image')]]
-        layout2=[[sg.Image(key='Image')]]
+        
         if Patient_info['Hemianopsia_type'] == 'Homonymous left':
-            #self.right_window=TK.
-            self.right_window=sg.Window('right',no_titlebar=True,layout=layout,location=(Patient_info['border_ri'],0),size=(self.devices[device]['width']-Patient_info['border_ri'],self.devices[device]['height']),finalize=True)
-            self.left_window=sg.Window('left',no_titlebar=True,layout=layout2,location=(Patient_info['border_le'],0),size=(self.devices[device]['center']-Patient_info['border_le'],self.devices[device]['height']),finalize=True)
+            self.right_window=TK.Tk()
+            self.right_window.geometry(str(self.devices[self.device]['width']-self.Patient_info['border_ri'])+'x'+str(self.devices[self.device]['height'])+'+'+str(self.devices[self.device]['width']-self.Patient_info['border_ri'])+'+0')
+            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.right_img_label=TK.Label(master=self.right_window,image=standby_imtk)
+            self.right_img_label.place(x=0,y=0)
+            self.left_window=TK.Toplevel()
+            self.left_window.geometry(str(self.patient_info['border_le']-self.devices[self.device]['center'])+'x'+str(self.devices[self.device]['height'])+'+'+str(Patient_info['border_le'])+'+0')
+            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.left_img_label=TK.Label(master=self.left_window,image=standby_imtk)
+            self.left_img_label.place(x=0,y=0)
         elif Patient_info['Hemianopsia_type'] == 'Homonymous right':
-            self.right_window= sg.Window('right',no_titlebar=True,layout=layout,location=(self.devices[device]['center'],0),size=(self.devices[device]['center'],self.devices[device]['center']),finalize=True)
-            self.left_window=sg.Window('right',no_titlebar=True,layout=layout2,location=(0,0),size=(Patient_info['border_le'],self.devices[device]['width']),finalize=True)
+            self.right_window=TK.Tk()
+            self.right_window.geometry(str(self.patient_info['border_ri']-self.devices[device]['center'])+'x'+str(self.devices[device]['height'])+'+'+str(self.devices[device]['center'])+'+0')
+            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.right_img_label=TK.Label(master=self.right_window,image=standby_imtk)
+            self.right_img_label.place(x=0,y=0)
+            self.left_window=TK.Tk()
+            self.left_window.geometry(str(self.patient_info['border_le'])+'x'+str(self.devices[device]['height']))
+            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.left_img_label=TK.Label(master=self.left_window,image=standby_imtk)
+            self.left_img_label.place(x=0,y=0)
     def update(self, frames):
-        def right_update(frame):
-            #Transform1=T.ToPILImage()
-            #Image=Transform1(imgTensor)
-            imgbytes = cv2.imencode('.png', frame)[1].tobytes()           
+        def right_update(frame):    
             im_pil = Image.fromarray(frame)
-            self.right_window['Image'].update(imgbytes)
+            imTK= ImageTk.PhotoImage(im_pil)
+            self.right_img_label.config(image=imTK)
+            self.right_window.update()
+            
         def left_update(frame):
-            #Transform1=T.ToPILImage()
-            #Image=Transform1(imgTensor)
-            imgbytes = cv2.imencode('.png', frame)[1].tobytes()  
-            img_file=cv2. imwrite("frame.jpg" , frame) 
             im_pil = Image.fromarray(frame)
-            self.left_window['Image'].update(imgbytes)
+            imTK= ImageTk.PhotoImage(im_pil)
+            self.left_img_label.config(image=imTK)
+            self.left_window.update()
         right_update(frame=frames[0])
         left_update(frame=frames[1])
     def transform (self,frame_le,frame_ri):#In go two open cv frames from cameras with 62 degrees fov, the desired frame width and the desired frame location ('center','side' or 'rigth')
@@ -114,7 +130,6 @@ class displayer():
         
         '''
         #transform the image for the left eye. 
-        frame_le= cv2.imread('c:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Test frames\\left\\10.jpeg')
         
 
         #Rotate the image by 270 degrees using a rotation matrix. 
@@ -125,7 +140,7 @@ class displayer():
         print (frame_le.shape)
         frame_le=frame_le[0:639,70:440]
         print (frame_le.shape)
-        frame_le=cv2.resize(src=frame_le,dsize=[int(self.left_window.size[0]),639])
+        frame_le=cv2.resize(src=frame_le,dsize=[int(self.left_window.winfo_width()),639])
         print (frame_le.shape)
         result.append(frame_le)
         #rotate the image by 90 degrees
@@ -137,7 +152,7 @@ class displayer():
         rot_matrix = cv2.getRotationMatrix2D(image_center, 90, 1.0)
         frame_ri = cv2.warpAffine(frame_ri, rot_matrix, frame_ri.shape[1::-1], flags=cv2.INTER_LINEAR)
         frame_ri=frame_ri[0:639,70:440]
-        frame_ri=cv2.resize(src=frame_ri,dsize=[int(self.right_window.size[1]),639])
+        frame_ri=cv2.resize(src=frame_ri,dsize=[int(self.right_window.winfo_width()),639])
         result.append(frame_ri)
         #remove the padding form the image by cutting it. 
 
@@ -155,7 +170,7 @@ def main():
     sender_socket_le.connect((Left_pi_IP,2000))
     
     
-    displayer1 = displayer(Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':500},device='HTCVive')
+    displayer1 = displayer(Patient_info= {'Hemianopsia_type':'Homonymous left','border_ri':500,'border_le':1500},device='HTCVive')
     
     #displayer1=testDisplayer()
 
