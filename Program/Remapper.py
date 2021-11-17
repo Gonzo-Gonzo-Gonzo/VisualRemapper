@@ -73,40 +73,39 @@ class displayer():
     def __init__(self, device, Patient_info):
         self.device=device
         self.patient_info=Patient_info
-        
         if Patient_info['Hemianopsia_type'] == 'Homonymous left':
             self.right_window=TK.Tk()
             self.right_window.geometry(str(self.devices[self.device]['width']-self.Patient_info['border_ri'])+'x'+str(self.devices[self.device]['height'])+'+'+str(self.devices[self.device]['width']-self.Patient_info['border_ri'])+'+0')
-            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
-            self.right_img_label=TK.Label(master=self.right_window,image=standby_imtk)
+            self.right_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.right_img_label=TK.Label(master=self.right_window,image=self.right_imtk)
             self.right_img_label.place(x=0,y=0)
             self.left_window=TK.Toplevel()
             self.left_window.geometry(str(self.patient_info['border_le']-self.devices[self.device]['center'])+'x'+str(self.devices[self.device]['height'])+'+'+str(Patient_info['border_le'])+'+0')
-            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
-            self.left_img_label=TK.Label(master=self.left_window,image=standby_imtk)
+            self.left_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.left_img_label=TK.Label(master=self.left_window,image=self.left_imtk)
             self.left_img_label.place(x=0,y=0)
         elif Patient_info['Hemianopsia_type'] == 'Homonymous right':
             self.right_window=TK.Tk()
             self.right_window.geometry(str(self.patient_info['border_ri']-self.devices[device]['center'])+'x'+str(self.devices[device]['height'])+'+'+str(self.devices[device]['center'])+'+0')
-            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
-            self.right_img_label=TK.Label(master=self.right_window,image=standby_imtk)
+            self.right_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.right_img_label=TK.Label(master=self.right_window,image=self.right_imtk)
             self.right_img_label.place(x=0,y=0)
             self.left_window=TK.Tk()
             self.left_window.geometry(str(self.patient_info['border_le'])+'x'+str(self.devices[device]['height']))
-            standby_imtk=ImageTk.PhotoImage(self.standby_image_pil)
-            self.left_img_label=TK.Label(master=self.left_window,image=standby_imtk)
+            self.left_imtk=ImageTk.PhotoImage(self.standby_image_pil)
+            self.left_img_label=TK.Label(master=self.left_window,image=self.left_imtk)
             self.left_img_label.place(x=0,y=0)
     def update(self, frames):
         def right_update(frame):    
             im_pil = Image.fromarray(frame)
-            imTK= ImageTk.PhotoImage(im_pil)
-            self.right_img_label.config(image=imTK)
+            self.right_imtk= ImageTk.PhotoImage(im_pil)
+            self.right_img_label.config(image=self.right_imtk)
             self.right_window.update()
             
         def left_update(frame):
             im_pil = Image.fromarray(frame)
-            imTK= ImageTk.PhotoImage(im_pil)
-            self.left_img_label.config(image=imTK)
+            self.left_imtk= ImageTk.PhotoImage(im_pil)
+            self.left_img_label.config(image=self.left_imtk)
             self.left_window.update()
         right_update(frame=frames[0])
         left_update(frame=frames[1])
@@ -138,25 +137,26 @@ class displayer():
         rot_matrix = cv2.getRotationMatrix2D(image_center, 270, 1.0)
         frame_le = cv2.warpAffine(frame_le, rot_matrix, frame_le.shape[1::-1], flags=cv2.INTER_LINEAR)
         print (frame_le.shape)
-        frame_le=frame_le[0:639,70:440]
+        #frame_le=frame_le[0:639,70:440]
+        print(str(self.left_window.winfo_width())+' '+str(self.left_window.winfo_height()))
+        frame_le=cv2.resize(src=frame_le,dsize=[self.left_window.winfo_width(),self.left_window.winfo_height()])
         print (frame_le.shape)
-        frame_le=cv2.resize(src=frame_le,dsize=[int(self.left_window.winfo_width()),639])
-        print (frame_le.shape)
-        result.append(frame_le)
+        
         #rotate the image by 90 degrees
         
         #do the same transformation for the right eye. 
-        frame_ri= cv2.imread('c:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Test frames\\right\\10.jpeg')
+        
         
         image_center = tuple(np.array(frame_ri.shape[1::-1]) / 2)
         rot_matrix = cv2.getRotationMatrix2D(image_center, 90, 1.0)
         frame_ri = cv2.warpAffine(frame_ri, rot_matrix, frame_ri.shape[1::-1], flags=cv2.INTER_LINEAR)
-        frame_ri=frame_ri[0:639,70:440]
-        frame_ri=cv2.resize(src=frame_ri,dsize=[int(self.right_window.winfo_width()),639])
-        result.append(frame_ri)
+        #frame_ri=frame_ri[0:639,70:440]
+        print(str(self.right_window.winfo_width())+' '+str(self.right_window.winfo_height()))
+        frame_ri=cv2.resize(src=frame_ri,dsize=[self.right_window.winfo_width(),self.right_window.winfo_height()])
+        print (frame_ri.shape)
         #remove the padding form the image by cutting it. 
-
-        
+        result.append(frame_ri)
+        result.append(frame_le)
         return result
 
 def main():
