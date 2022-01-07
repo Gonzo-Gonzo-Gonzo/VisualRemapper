@@ -2,7 +2,7 @@
 import socket, pickle
 import paramiko  
 import struct
-
+import math
 from PySimpleGUI.PySimpleGUI import Window
 from torchvision.io.image import ImageReadMode
 import matplotlib.pyplot as plt
@@ -112,6 +112,14 @@ class displayer():
             self.left_window.update()
         right_update(frame=frames[0])
         left_update(frame=frames[1])
+    def process_recording(self,frame_list,fps):#fps options are 10,20,50
+        reading_variable=0
+        while reading_variable < len(frame_list):
+            time.sleep(1/fps)
+            self.update(frame_list[reading_variable])
+            reading_variable+=1
+        
+        
 
 
 #Transformer class must have a transform function that is called. 
@@ -119,6 +127,7 @@ class displayer():
 #Every function must have a toString function that explains its purpose and the combinations it can be used in. 
 
 class Transformer ():
+    width_of_frames=639
     def __init__(self,components):
         self.components=components
     def transform (self,frame_le,frame_ri):#In go two open cv frames from cameras with 62 degrees fov, the desired frame width and the desired frame location ('center','side' or 'rigth')
@@ -166,11 +175,39 @@ class Transformer ():
         result.append(frame_le)
         return result
     
-    def transform2():#Overlap adjuster. 
+    def transform2_10m(self,frames):#Overlap adjuster.
         #follow the real life immitation algorithm.
-        x=0 #useless variable
-
-
+        #1.Using Equation E Calculate  for human eye.
+        #Calculate overlap proportion for the human eye at distance D=1000cm
+        #assume a distance between eyes of 3 cm
+        D=1000
+        S=3
+        AFOV=135
+        eye_overlap= ((10*2/(math.tan((180-AFOV)/2)))-3)/(3+(10*2/(math.tan((180-AFOV)/2))))
+        #calculate the overlap for the cameras with the same distance 
+        D=1000
+        S=2
+        AFOV=70
+        camera_overlap=((10*2/(math.tan((180-AFOV)/2)))-3)/(3+(10*2/(math.tan((180-AFOV)/2))))
+        #Modify the frames to make the overlap more similar.
+        #q is the length of the piece of frame that needs to be copied and added to the frame beside it to make the camera overlap equal the eye overlap.
+        q=(eye_overlap*639-camera_overlap*639)/(1-eye_overlap)
+        
+        if camera_overlap<eye_overlap:
+            piece0=frames[0][self.width_of_frames-q:self.width_of_frames,0:440]
+            piece1=frames[1][0:q,0:440]
+            #add the piece from frame 1 to frame 0 and the piece from frame 0 to frame 1.
+            frames[1]=cv2.vconcat(frames[1],piece0)
+            frames[0]=cv2.vconcat(frames[0],piece1)
+        
+            
+    def increase_overlap(self, frames):
+        
+        piece0=frames[0][self.width_of_frames-10:self.width_of_frames,0:440]
+        piece1=frames[1][0:10,0:440]
+        #add the piece from frame 1 to frame 0 and the piece from frame 0 to frame 1. 
+        frames[1]=cv2.vconcat(frames[1],piece0)
+        frames[0]=cv2.vconcat(frames[0],piece1)
 class Remapper():
     def __init__(self,Displayer,mode,Info,number_of_frames):
         self.Info=Info
@@ -349,6 +386,7 @@ class Remapper():
             frames=self.displayer1.transform(frame_le=frame_Le,frame_ri=frame_Ri)
             result.append(frames)
             print('frames appended')
+            counting_variable+=1
         return result
 
 
