@@ -1,7 +1,6 @@
  
  
- Old infinite loop using paramiko.
- 
+ Old infinite loop using paramiko rather than socket to transfer frames live. It is reliable but very slow, hard to get slower. It can also be used to collect frames in a function similar to def stream_recort() 
   '''
     #loop through this to create the stream 
     #while(True):
@@ -26,10 +25,9 @@
     #Left_window.close()
     
    
-    PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
     
 
-    image= torchvision.io.read_image("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg",ImageReadMode.UNCHANGED)
+    image= torchvision.io.read_image(,ImageReadMode.UNCHANGED)
     
 
     image= TF.resize(image,(400,400))
@@ -43,6 +41,8 @@
 
 
     OLD WINDOW MAKER
+
+
 
 def makeWindow(lense,border,headset_type,Hemianopsia_type):
     PIL_image=Image.open("C:\\Users\\lorca\\IT masters\\Dissertation\\Program\\Dead aphid.jpg")
