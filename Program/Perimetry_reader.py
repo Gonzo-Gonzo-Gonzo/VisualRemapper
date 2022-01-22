@@ -68,11 +68,11 @@ def run_test (HemianopsiaType='right',Display='Test'):
     #create the root window
     root = Tk()
     #place the window in the right place
-    Screen_height=root.winfo_screenheight()-100
+    Screen_height=root.winfo_screenheight()+100
     Screen_width=root.winfo_screenwidth()-100
     root.geometry((str(Screen_width+20)+'x'+str(Screen_height+20)+'+0+0'))
     #create the canvas and put it on the window
-    canvas=Canvas(root,width=Screen_width,height=Screen_height,bg='#fff')
+    canvas=Canvas(root,width=Screen_width,height=Screen_height-100,bg='#fff000000')
     canvas.grid(row=0,rowspan=3)
     root.update()
     #create a button for notifying and put it in the root window
@@ -127,7 +127,7 @@ def run_test (HemianopsiaType='right',Display='Test'):
 #In this function, the oval moves rightwards. 
 def Oval_loop_A_B_right(data,window,A, B, centerx,centery,canvas):#A must be smaller than B
     #canvas=Canvas(window,width=width,heigh=height,bg='#fff')
-    center_oval=canvas.create_oval(centerx,centery,centerx+50,centery+50, fill='#ff0000')
+    center_oval=canvas.create_oval(centerx,centery,centerx+50,centery+50, fill='#000000')
     
     window.update()
     #set y_pos to be the center of the canvas.
@@ -152,7 +152,7 @@ def Oval_loop_A_B_left(canvas,data,window,A, B, centerx,centery):#A must be larg
     #create a canvas that is as big as the screen.
     #canvas=Canvas(window,width=width,heigh=height,bg='#fff')
     #create an oval in the centre. 
-    center_oval=canvas.create_oval(centerx,centery,centerx+20,centery+20, fill='#ff0000')
+    center_oval=canvas.create_oval(centerx,centery,centerx+20,centery+20, fill='#000000')
     
    
     window.update()
