@@ -1,9 +1,12 @@
+#The class in this script is instantiated by Sender.py and uses the "read" method to get the next frame.
+#It collects frames from the rapsberry pi camera and puts them in a queue on a thread. 
 import cv2
 import pickle
 import time
 import struct
 from queue import Queue
 from threading import Thread
+
 
 class cameraStream ():
         def __init__(self):
